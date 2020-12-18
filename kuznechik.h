@@ -19,7 +19,7 @@ struct block
 
         unsigned char operator[] ( const int index) const;
         friend block operator ^ ( const block& a, const block& b);
-        friend std::ostream& operator<<( std::ostream& os, const block& b);
+        friend std::ostream& operator << ( std::ostream& os, const block& b);
 
         void mod();
         void print();
@@ -162,7 +162,3 @@ class kuznechik
         void encrypt_data( const char* output_file_name);
         void decrypt_data( const char* output_file_name);
 };
-
-void encrypt_data( const char* file_name, const char* key_1, const char* key_2);
-void decrypt_data( const char* file_name, const char* key_1, const char* key_2);
-
