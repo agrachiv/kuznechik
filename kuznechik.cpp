@@ -6,24 +6,66 @@ void encrypt_file( const char* input_file_name, const char* output_file_name, co
     encryptor.encrypt_data( output_file_name);
 }
 
+void encrypt_data( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key)
+{
+    kuznechik encryptor( input_file_name, hexadecimal_key);
+    encryptor.encrypt_data( output_file_name);
+}
+
 void decrypt_file( const char* input_file_name, const char* output_file_name, const char* key_1, const char* key_2)
 {
     kuznechik encryptor( input_file_name, block( key_1), block( key_2));
     encryptor.decrypt_data( output_file_name);
 }
 
-void kuznechik::encrypt_data( const char* output_file_name)
+void decrypt_file( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key)
+{
+    kuznechik encryptor( input_file_name, hexadecimal_key);
+    encryptor.decrypt_data( output_file_name);
+}
+
+std::string hex_to_string ( const std::string input_string)
+{
+    std::string output_string;
+
+    for ( int i = 0; i < input_string.length(); i += 2)
+    {
+        const char* p = std::lower_bound( hex_symbol_table, hex_symbol_table + 16, input_string[i]);
+        const char* q = std::lower_bound( hex_symbol_table, hex_symbol_table + 16, input_string[i + 1]);
+        output_string.push_back((( p - hex_symbol_table) << 4) | ( q - hex_symbol_table));
+    }
+    return output_string;
+}
+
+std::string string_to_hex ( const std::string input_string)
+{
+    std::string output_string;
+    for ( int i = 0; i < input_string.length(); i ++)
+        output_string += char_to_hex_string( input_string[i]);
+    return output_string;
+}
+
+std::string char_to_hex_string( char c)
+{
+    std::string hex = "0123456789abcdef";
+    std::string hex_str;
+    hex_str += hex[int(int( c)/16)];
+    hex_str += hex[int( c) % 16];
+    return hex_str;
+}
+
+void kuznechik::encrypt_data( const char* output_file_name, bool use_hex)
 {
     for ( int i = 0; i < data.size(); i++)
         data[i] = encrypt_block( data[i]);
-    write_to_file( output_file_name);
+    write_to_file( output_file_name, use_hex);
 }
 
-void kuznechik::decrypt_data( const char* output_file_name)
+void kuznechik::decrypt_data( const char* output_file_name, bool use_hex)
 {
     for ( int i = 0; i < data.size(); i++)
         data[i] = decrypt_block( data[i]);
-    write_to_file( output_file_name);
+    write_to_file( output_file_name, use_hex);
 }
 
 kuznechik::kuznechik( const char* file_name, const block key_1, const block key_2)
@@ -34,11 +76,24 @@ kuznechik::kuznechik( const char* file_name, const block key_1, const block key_
     generate_iteraion_keys( key_1, key_2);
 }
 
-void kuznechik::read_file_to_data_buffer( const char* file_name)
+kuznechik::kuznechik( const char* file_name, const char* hexadecimal_key)
+{
+    assert( strlen( hexadecimal_key) == 32 && "Wrong key");
+    iteration_keys.resize( number_of_iteration_keys);
+    read_file_to_data_buffer( file_name, true);
+    calculate_iteration_constants();
+    std::string ascii_key_pair = hex_to_string( hexadecimal_key);
+    generate_iteraion_keys( ascii_key_pair.substr( 0, 15), ascii_key_pair.substr( 16));
+}
+
+void kuznechik::read_file_to_data_buffer( const char* file_name, bool is_hex)
 {
     std::ifstream input_file_stream( file_name);
     assert( input_file_stream && "Can't find file");
     std::string file_content( ( std::istreambuf_iterator<char>( input_file_stream)), std::istreambuf_iterator<char>());
+
+    if (is_hex == true)
+        file_content = hex_to_string( file_content);
 
     int length_of_the_trailing_string = file_content.length() % block::size;
 
@@ -53,6 +108,7 @@ void kuznechik::read_file_to_data_buffer( const char* file_name)
         data.push_back( block( trailing_content));
     }
 }
+
 
 void kuznechik::calculate_iteration_constants()
 {
@@ -238,14 +294,16 @@ block kuznechik::decrypt_block( const block input_block)
     return returned_block;
 }
 
-void kuznechik::write_to_file( const char* output_file)
+void kuznechik::write_to_file( const char* output_file, bool use_hex)
 {
     std::ofstream output_stream;
     output_stream.open( output_file);
     assert( output_stream.is_open() && "Can't open file");
     for ( block i : data)
-        for ( int j = 0; j < block::size; j++)
-            output_stream << (unsigned char)(i[j]);
+        if ( use_hex == true)
+            output_stream << hex_to_string( std::string( i.get_data().begin(), i.get_data().end()));
+        else
+            output_stream << std::string( i.get_data().begin(), i.get_data().end());
 }
 /////////////////////////
 

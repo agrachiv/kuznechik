@@ -4,9 +4,19 @@
 #include <climits>
 #include <fstream>
 #include <string>
+#include <cstring>
 
 void encrypt_file( const char* input_file_name, const char* output_file_name, const char* key_1, const char* key_2);
+void encrypt_file( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key);
+
 void decrypt_file( const char* input_file_name, const char* output_file_name, const char* key_1, const char* key_2);
+void decrypt_file( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key);
+
+const char* const hex_symbol_table = "0123456789abcdef";
+
+std::string char_to_hex_string( char c);
+std::string hex_to_string ( const std::string input_string);
+std::string string_to_hex ( const std::string input_string);
 
 struct block
 {
@@ -19,7 +29,8 @@ struct block
 
         unsigned char operator[] ( const int index) const;
         friend block operator ^ ( const block& a, const block& b);
-        friend std::ostream& operator<<( std::ostream& os, const block& b);
+        friend std::ostream& operator << ( std::ostream& os, const block& b);
+        const std::vector<unsigned char>& get_data() const { return data; }
 
         void mod();
         void print();
@@ -126,7 +137,7 @@ class kuznechik
         std::vector<block> iteration_constants;
         std::vector<block> iteration_keys;
 
-        void read_file_to_data_buffer( const char* file_name);
+        void read_file_to_data_buffer( const char* file_name, bool is_hex = false);
         void calculate_iteration_constants();
 
         void generate_iteraion_keys( block key_1, block key_2);
@@ -154,13 +165,14 @@ class kuznechik
         block encrypt_block( const block input_block);
         block decrypt_block( const block input_block);
 
-        void write_to_file( const char* output_file);
+        void write_to_file( const char* output_file, bool use_hex = false);
 
     public:
         kuznechik( const char* file_name, const block key_1, const block key_2);
+        kuznechik( const char* file_name, const char* hexadecimal_key);
 
-        void encrypt_data( const char* output_file_name);
-        void decrypt_data( const char* output_file_name);
+        void encrypt_data( const char* output_file_name, bool use_hex = false);
+        void decrypt_data( const char* output_file_name, bool use_hex = false);
 };
 
 void encrypt_data( const char* file_name, const char* key_1, const char* key_2);
