@@ -6,7 +6,7 @@ void encrypt_file( const char* input_file_name, const char* output_file_name, co
     encryptor.encrypt_data( output_file_name);
 }
 
-void encrypt_data( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key)
+void encrypt_file( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key)
 {
     kuznechik encryptor( input_file_name, hexadecimal_key);
     encryptor.encrypt_data( output_file_name);
@@ -78,7 +78,7 @@ kuznechik::kuznechik( const char* file_name, const block key_1, const block key_
 
 kuznechik::kuznechik( const char* file_name, const char* hexadecimal_key)
 {
-    assert( strlen( hexadecimal_key) == 32 && "Wrong key");
+    assert( strlen( hexadecimal_key) == 64 && "Wrong key");
     iteration_keys.resize( number_of_iteration_keys);
     read_file_to_data_buffer( file_name, true);
     calculate_iteration_constants();
