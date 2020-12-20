@@ -56,15 +56,34 @@ std::string char_to_hex_string( char c)
 
 void kuznechik::encrypt_data( const char* output_file_name, bool use_hex)
 {
-    for ( int i = 0; i < data.size(); i++)
-        data[i] = encrypt_block( data[i]);
+    double start;
+    double end;
+    start = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for
+    	for ( int i = 0; i < data.size(); i++)
+           data[i] = encrypt_block( data[i]);
+    }
+    end = omp_get_wtime(); 
+    std::cout << "Encryption time: "  << end - start << std::endl;
     write_to_file( output_file_name, use_hex);
 }
 
 void kuznechik::decrypt_data( const char* output_file_name, bool use_hex)
 {
-    for ( int i = 0; i < data.size(); i++)
-        data[i] = decrypt_block( data[i]);
+//    omp_set_num_threads(OMP_NUM_THREADS);
+    double start;
+    double end;
+    start = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for ( int i = 0; i < data.size(); i++)
+            data[i] = decrypt_block( data[i]);
+    }
+    end = omp_get_wtime();
+    std::cout << "Decryption time: "  << end - start << std::endl;    
     write_to_file( output_file_name, use_hex);
 }
 
@@ -185,7 +204,7 @@ unsigned char kuznechik::GF_mul( unsigned char a, unsigned char b)
 			c ^= a;
 		unsigned char hi_bit = (char)( a & 0x80);
 		a <<= 1;
-		if( hi_bit < 0)
+		if( hi_bit == 0)
 			a ^= 0xC3;
 		b >>= 1;
 	}

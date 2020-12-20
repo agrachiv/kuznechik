@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <omp.h>
 
 void encrypt_file( const char* input_file_name, const char* output_file_name, const char* key_1, const char* key_2);
 void encrypt_file( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key);
