@@ -174,7 +174,3 @@ class kuznechik
         void encrypt_data( const char* output_file_name, bool use_hex = false);
         void decrypt_data( const char* output_file_name, bool use_hex = false);
 };
-
-void encrypt_data( const char* file_name, const char* key_1, const char* key_2);
-void decrypt_data( const char* file_name, const char* key_1, const char* key_2);
-
