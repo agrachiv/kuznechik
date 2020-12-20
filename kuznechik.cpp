@@ -6,10 +6,10 @@ void encrypt_file( const char* input_file_name, const char* output_file_name, co
     encryptor.encrypt_data( output_file_name);
 }
 
-void encrypt_data( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key)
+std::string encrypt_single_block( std::string input_block, const char* hexadecimal_key)
 {
-    kuznechik encryptor( input_file_name, hexadecimal_key);
-    encryptor.encrypt_data( output_file_name);
+    kuznechik encryptor( input_block, hexadecimal_key);
+    return string_to_hex( encryptor.encrypt_block_data());
 }
 
 void decrypt_file( const char* input_file_name, const char* output_file_name, const char* key_1, const char* key_2)
@@ -18,10 +18,10 @@ void decrypt_file( const char* input_file_name, const char* output_file_name, co
     encryptor.decrypt_data( output_file_name);
 }
 
-void decrypt_file( const char* input_file_name, const char* output_file_name, const char* hexadecimal_key)
+std::string decrypt_single_block( std::string input_block, const char* hexadecimal_key)
 {
-    kuznechik encryptor( input_file_name, hexadecimal_key);
-    encryptor.decrypt_data( output_file_name);
+    kuznechik encryptor( input_block, hexadecimal_key);
+    return string_to_hex( encryptor.decrypt_block_data());
 }
 
 std::string hex_to_string ( const std::string input_string)
@@ -54,18 +54,30 @@ std::string char_to_hex_string( char c)
     return hex_str;
 }
 
-void kuznechik::encrypt_data( const char* output_file_name, bool use_hex)
+void kuznechik::encrypt_data( const char* output_file_name)
 {
     for ( int i = 0; i < data.size(); i++)
         data[i] = encrypt_block( data[i]);
-    write_to_file( output_file_name, use_hex);
+    write_to_file( output_file_name);
 }
 
-void kuznechik::decrypt_data( const char* output_file_name, bool use_hex)
+void kuznechik::decrypt_data( const char* output_file_name)
 {
     for ( int i = 0; i < data.size(); i++)
         data[i] = decrypt_block( data[i]);
-    write_to_file( output_file_name, use_hex);
+    write_to_file( output_file_name);
+}
+
+std::string kuznechik::encrypt_block_data()
+{
+    std::vector<unsigned char> encrypted_block = encrypt_block( data[0]).get_data();
+    return string_to_hex( std::string( encrypted_block.begin(), encrypted_block.end()));
+}
+
+std::string kuznechik::decrypt_block_data()
+{
+    std::vector<unsigned char> decrypted_block = decrypt_block( data[0]).get_data();
+    return string_to_hex( std::string( decrypted_block.begin(), decrypted_block.end()));
 }
 
 kuznechik::kuznechik( const char* file_name, const block key_1, const block key_2)
@@ -76,24 +88,23 @@ kuznechik::kuznechik( const char* file_name, const block key_1, const block key_
     generate_iteraion_keys( key_1, key_2);
 }
 
-kuznechik::kuznechik( const char* file_name, const char* hexadecimal_key)
+kuznechik::kuznechik( std::string input_block, const char* hexadecimal_key)
 {
-    assert( strlen( hexadecimal_key) == 32 && "Wrong key");
+    assert( strlen( hexadecimal_key) == 64 && "Wrong key");
     iteration_keys.resize( number_of_iteration_keys);
-    read_file_to_data_buffer( file_name, true);
+    std::cout << input_block.length();
+    assert( input_block.length() == 32 && "Wrong block size");
+    data.push_back( block( hex_to_string( input_block)));
     calculate_iteration_constants();
     std::string ascii_key_pair = hex_to_string( hexadecimal_key);
-    generate_iteraion_keys( ascii_key_pair.substr( 0, 15), ascii_key_pair.substr( 16));
+    generate_iteraion_keys( ascii_key_pair.substr( 0, 16), ascii_key_pair.substr( 16));
 }
 
-void kuznechik::read_file_to_data_buffer( const char* file_name, bool is_hex)
+void kuznechik::read_file_to_data_buffer( const char* file_name)
 {
     std::ifstream input_file_stream( file_name);
     assert( input_file_stream && "Can't find file");
     std::string file_content( ( std::istreambuf_iterator<char>( input_file_stream)), std::istreambuf_iterator<char>());
-
-    if (is_hex == true)
-        file_content = hex_to_string( file_content);
 
     int length_of_the_trailing_string = file_content.length() % block::size;
 
@@ -294,15 +305,12 @@ block kuznechik::decrypt_block( const block input_block)
     return returned_block;
 }
 
-void kuznechik::write_to_file( const char* output_file, bool use_hex)
+void kuznechik::write_to_file( const char* output_file)
 {
     std::ofstream output_stream;
     output_stream.open( output_file);
     assert( output_stream.is_open() && "Can't open file");
     for ( block i : data)
-        if ( use_hex == true)
-            output_stream << hex_to_string( std::string( i.get_data().begin(), i.get_data().end()));
-        else
             output_stream << std::string( i.get_data().begin(), i.get_data().end());
 }
 /////////////////////////
