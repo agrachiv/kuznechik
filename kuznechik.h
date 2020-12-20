@@ -52,7 +52,8 @@ std::ostream& operator << ( std::ostream& os, const block& b);
 
 class kuznechik
 {
-    private:
+    //private:
+    public: ///
         const unsigned char substitution_table[UCHAR_MAX + 1] =
         {
             (unsigned char)0xFC, (unsigned char)0xEE, (unsigned char)0xDD, (unsigned char)0x11, (unsigned char)0xCF, (unsigned char)0x6E, (unsigned char)0x31, (unsigned char)0x16,

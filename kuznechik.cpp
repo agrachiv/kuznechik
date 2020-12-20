@@ -9,7 +9,9 @@ void encrypt_file( const char* input_file_name, const char* output_file_name, co
 std::string encrypt_single_block( std::string input_block, const char* hexadecimal_key)
 {
     kuznechik encryptor( input_block, hexadecimal_key);
-    return string_to_hex( encryptor.encrypt_block_data());
+    encryptor.data[0].print();\
+    std::cout << "7";
+    return encryptor.encrypt_block_data();
 }
 
 void decrypt_file( const char* input_file_name, const char* output_file_name, const char* key_1, const char* key_2)
@@ -21,7 +23,7 @@ void decrypt_file( const char* input_file_name, const char* output_file_name, co
 std::string decrypt_single_block( std::string input_block, const char* hexadecimal_key)
 {
     kuznechik encryptor( input_block, hexadecimal_key);
-    return string_to_hex( encryptor.decrypt_block_data());
+    return encryptor.decrypt_block_data();
 }
 
 std::string hex_to_string ( const std::string input_string)
@@ -93,7 +95,7 @@ kuznechik::kuznechik( std::string input_block, const char* hexadecimal_key)
     assert( strlen( hexadecimal_key) == 64 && "Wrong key");
     iteration_keys.resize( number_of_iteration_keys);
     std::cout << input_block.length();
-    assert( input_block.length() == 32 && "Wrong block size");
+    assert( input_block.length() == 32 && "Wrong block size in kuznechik::kuznechik");
     data.push_back( block( hex_to_string( input_block)));
     calculate_iteration_constants();
     std::string ascii_key_pair = hex_to_string( hexadecimal_key);
@@ -349,6 +351,6 @@ void block::print()
 {
     for( int i : data)
         std::cout << (unsigned char)i;
-    std::cout << std::endl;
+    //std::cout << std::endl;
 }
 
